@@ -54,6 +54,39 @@ class ItemConfigure {
 		this.dialog.set_values(JSON.parse(localStorage.getItem(this.get_cache_key())));
 
 		$('.btn-configure').prop('disabled', false);
+		this.setup_attribute_selection();
+	}
+
+	setup_attribute_selection() {
+		this.dialog.$wrapper.find('.modal-dialog').addClass('hidden');
+		this.attribute_display_area = $('<div class="attribute-display-area">').prependTo(this.dialog.$wrapper);
+		// Bind Events
+		this.attribute_display_area.on('click', 'button.attribute-option', e => {
+			let target = $(e.target);
+			let existing_value = this.dialog.get_value(target.data('fieldname'));
+			if (existing_value === target.data('value')) {
+				// deselect
+				this.dialog.set_value(target.data('fieldname'), '');
+				return;
+			}
+			this.dialog.set_value(target.data('fieldname'), target.data('value'));
+		})
+		this.render_buttons_for_attribute_display_area();
+	}
+	render_buttons_for_attribute_display_area() {
+		this.attribute_display_area.empty();
+		let fields = this.dialog.fields.map(f => f.options ? f : null).filter(f => f);
+		const values = this.dialog.get_values();
+		fields.forEach(df => {
+			this.attribute_display_area.append(`
+				<div>
+					<div class="label"> ${df.label} : </div>
+					<div class="options">
+					${df.options.map(option => (`<button ${option.disabled ? 'disabled' : ''} class="btn btn-outline-secondary m-1 attribute-option ${values[df.fieldname] === option.value ? 'active' : ''}" data-fieldname="${df.fieldname}" data-value="${option.value}">${option.label || option.value}</button>`)).join('')}
+					</div>
+				</div>
+				`);
+		});
 	}
 
 	on_attribute_selection(e) {
@@ -96,6 +129,7 @@ class ItemConfigure {
 					this.dialog.set_df_property(attribute, 'options', new_options);
 					this.dialog.get_field(attribute).set_options();
 				}
+				this.render_buttons_for_attribute_display_area();
 			});
 	}
 
@@ -219,9 +253,9 @@ class ItemConfigure {
 				<div><div>
 					${one_item}
 					${product_info && product_info.price && !$.isEmptyObject(product_info.price)
-						? '(' + product_info.price.formatted_price_sales_uom + ')'
-						: ''
-					}
+				? '(' + product_info.price.formatted_price_sales_uom + ')'
+				: ''
+			}
 				</div></div>
 				<a href data-action="btn_clear_values" data-item-code="${one_item}">
 					${__('Clear Values')}
@@ -270,6 +304,7 @@ class ItemConfigure {
 		});
 		this.dialog.clear();
 		this.on_attribute_selection();
+		this.render_buttons_for_attribute_display_area();
 	}
 
 	append_status_area() {
@@ -325,7 +360,7 @@ function set_continue_configuration() {
 
 frappe.ready(() => {
 	frappe.ui.AttributeDialog = class CustomDialog extends frappe.ui.Dialog {
-    // You can pass the container selector in the constructor or just hardcode it
+		// You can pass the container selector in the constructor or just hardcode it
 		constructor(opts) {
 			// You might want to remove 'modal' from the classes if you don't
 			// want the dialog's styling to conflict with its non-popup context.
