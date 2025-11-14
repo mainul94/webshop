@@ -75,14 +75,7 @@ $.extend(shopping_cart, {
 	},
 
 	update_cart: function(opts) {
-		if (frappe.session.user==="Guest") {
-			if (localStorage) {
-				localStorage.setItem("last_visited", window.location.pathname);
-			}
-			frappe.call('webshop.webshop.api.get_guest_redirect_on_action').then((res) => {
-				window.location.href = res.message || "/login";
-			});
-		} else {
+		if (frappe.session.user) {
 			shopping_cart.freeze();
 			return frappe.call({
 				type: "POST",
@@ -108,9 +101,9 @@ $.extend(shopping_cart, {
 		$(".intermediate-empty-cart").remove();
 
 		var cart_count = frappe.get_cookie("cart_count");
-		if(frappe.session.user==="Guest") {
-			cart_count = 0;
-		}
+		// if(frappe.session.user==="Guest") {
+		// 	cart_count = 0;
+		// }
 
 		if(cart_count) {
 			$(".shopping-cart").toggleClass('hidden', false);

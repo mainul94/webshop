@@ -28,13 +28,15 @@ class ItemConfigure {
 			};
 		});
 
-		this.dialog = new frappe.ui.Dialog({
+		this.dialog = new frappe.ui.AttributeDialog({
+			container_selector: "#my-custom-dialog-attribute",
 			title: __('Select Variant for {0}', [this.item_name]),
 			fields,
 			on_hide: () => {
 				set_continue_configuration();
 			}
 		});
+		this.dialog.$status_area = $("show-status-area");
 
 		this.attribute_data.forEach(a => {
 			const field = this.dialog.get_field(a.attribute);
@@ -271,8 +273,9 @@ class ItemConfigure {
 	}
 
 	append_status_area() {
+		this.dialog.$wrapper.addClass('item-configurator-dialog');
 		this.dialog.$status_area = $('<div class="status-area mt-5">');
-		this.dialog.$wrapper.find('.modal-body').append(this.dialog.$status_area);
+		this.dialog.$wrapper.append(this.dialog.$status_area);
 		this.dialog.$wrapper.on('click', '[data-action]', (e) => {
 			e.preventDefault();
 			const $target = $(e.currentTarget);
@@ -280,7 +283,6 @@ class ItemConfigure {
 			const method = this[action];
 			method.call(this, e);
 		});
-		this.dialog.$wrapper.addClass('item-configurator-dialog');
 	}
 
 	get_next_attribute_and_values(selected_attributes) {
@@ -322,14 +324,60 @@ function set_continue_configuration() {
 }
 
 frappe.ready(() => {
-	const $btn_configure = $('.btn-configure');
-	if (!$btn_configure.length) return;
-	const { itemCode, itemName } = $btn_configure.data();
+	frappe.ui.AttributeDialog = class CustomDialog extends frappe.ui.Dialog {
+    // You can pass the container selector in the constructor or just hardcode it
+		constructor(opts) {
+			// You might want to remove 'modal' from the classes if you don't
+			// want the dialog's styling to conflict with its non-popup context.
+			if (!opts.container_selector) {
+				console.error("CustomDialog requires a container_selector option.");
+				// Fallback or throw error
+			}
 
-	set_continue_configuration();
+			super(opts);
 
-	$btn_configure.on('click', () => {
-		$btn_configure.prop('disabled', true);
-		new ItemConfigure(itemCode, itemName);
-	});
+			// Store the selector
+			this.container_selector = opts.container_selector;
+		}
+
+		make() {
+			// Call the original make method to build the dialog's structure (`this.$wrapper`)
+			super.make();
+
+			// 1. Remove standard dialog/modal classes/attributes for in-place rendering
+			this.$wrapper.removeClass("modal-dialog-scrollable modal-dialog");
+			this.$wrapper.attr("role", "none"); // Remove role=document
+
+			// The default `super.make()` appends `this.$wrapper` to `.modal-content`
+			// which is then put into the body. We need to move the *actual content*
+			// or the entire wrapper. The safest is to move the top-level wrapper.
+
+			// 2. Remove the wrapper from its default parent (the modal backdrop/container)
+			// this.$wrapper.closest('.modal').remove();
+
+			// 3. Append the dialog wrapper to your custom container
+			const $container = $(this.container_selector);
+			if ($container.length) {
+				// Append the content wrapper (which is `this.$wrapper`)
+				$container.append(this.$wrapper);
+			} else {
+				console.error(`Container '${this.container_selector}' not found.`);
+			}
+			this.$wrapper.find(".modal-header").hide();
+		}
+
+		// You might also need to override show and hide to skip modal-specific logic
+		show() {
+			this.$wrapper.show();
+			this.primary_action_fulfilled = false;
+			this.is_visible = true;
+			return this;
+		}
+
+		hide() {
+			this.$wrapper.hide();
+			this.is_visible = false;
+		}
+	};
+	new ItemConfigure("{{ doc.item_code }}", "{{ doc.web_item_name }}");
 });

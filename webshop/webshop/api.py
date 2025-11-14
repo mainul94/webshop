@@ -87,3 +87,11 @@ def get_product_filter_data(query_args=None):
 @frappe.whitelist(allow_guest=True)
 def get_guest_redirect_on_action():
 	return frappe.db.get_single_value("Webshop Settings", "redirect_on_action")
+
+@frappe.whitelist(allow_guest=True)
+def make_guest_session():
+	"""Create a guest session for the user if not already present"""
+	if frappe.session.user == "Guest":
+		return
+	frappe.set_user("Guest")
+	return frappe.session.sid

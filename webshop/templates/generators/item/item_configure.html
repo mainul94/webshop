@@ -3,18 +3,26 @@
 
 <div class="mt-5 mb-6">
 	{% if cart_settings.enable_variants | int %}
-	<button class="btn btn-primary-light btn-configure font-md mr-2"
+	<!-- <button class="btn btn-primary-light btn-configure font-md mr-2"
 		data-item-code="{{ doc.item_code }}"
 		data-item-name="{{ doc.web_item_name }}"
 	>
 		{{ _('Select Variant') }}
-	</button>
+	</button> -->
 	{% endif %}
 	{% if cart_settings.show_contact_us_button %}
 		{% include "templates/generators/item/item_inquiry.html" %}
 	{% endif %}
 </div>
+<div id="my-custom-dialog-attribute" style="position: relative !important;"></div>
+<div id="show-status-area"></div>
 <script>
 {% include "templates/generators/item/item_configure.js" %}
 </script>
 {% endif %}
+<style>
+	#my-custom-dialog-attribute .item-configurator-dialog {
+		position: relative !important;
+		opacity: 1;
+	}
+</style>

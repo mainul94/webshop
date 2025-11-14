@@ -86,7 +86,7 @@ def get_billing_addresses(party=None):
 	]
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def place_order():
 	quotation = _get_cart_quotation()
 	cart_settings = frappe.get_cached_doc("Webshop Settings")
@@ -152,7 +152,7 @@ def request_for_quotation():
 	return quotation.name
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def update_cart(item_code, qty, additional_notes=None, with_items=False):
 	quotation = _get_cart_quotation()
 
@@ -224,7 +224,7 @@ def get_shopping_cart_menu(context=None):
 	return frappe.render_template("templates/includes/cart/cart_dropdown.html", context)
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def add_new_address(doc):
 	doc = frappe.parse_json(doc)
 	doc.update({"doctype": "Address"})
@@ -276,7 +276,7 @@ def get_terms_and_conditions(terms_name):
 	return frappe.db.get_value("Terms and Conditions", terms_name, "terms")
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def update_cart_address(address_type, address_name):
 	quotation = _get_cart_quotation()
 	address_doc = frappe.get_doc("Address", address_name).as_dict()

@@ -37,7 +37,7 @@ def get_slideshow(slideshow):
 
 def get_tabs(categories):
 	tab_values = {
-		"title": _("Shop by Category"),
+		"title": f""" {_("Welcome to Arwanoor")} <br> <small>{ _('Your smaile is our achievement') }</small>""",
 	}
 
 	categorical_data = get_category_records(categories)
